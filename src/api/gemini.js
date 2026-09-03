@@ -21,6 +21,7 @@ function assertKey() {
 
 const RETRYABLE_STATUSES = new Set([429, 500, 503]);
 const MAX_ATTEMPTS = 3;
+const REQUEST_TIMEOUT_MS = 15000;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Turn a raw HTTP failure into a short, visitor-facing sentence instead of
@@ -42,10 +43,13 @@ async function callGemini({ systemInstruction, contents, responseMimeType }) {
   for (const model of MODELS) {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
       let res;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       try {
         res = await fetch(`${urlFor(model)}?key=${API_KEY}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
             systemInstruction: systemInstruction
               ? { parts: [{ text: systemInstruction }] }
@@ -58,10 +62,17 @@ async function callGemini({ systemInstruction, contents, responseMimeType }) {
           }),
         });
       } catch (networkErr) {
+        if (networkErr.name === "AbortError") {
+          throw new GeminiApiError(
+            "The AI assistant took too long to respond. Please try again."
+          );
+        }
         // Network failure (offline, DNS, CORS) — not retryable in a way that helps here.
         throw new GeminiApiError(
           "Couldn't reach the AI assistant. Check your connection and try again."
         );
+      } finally {
+        clearTimeout(timeoutId);
       }
 
       if (res.ok) {
