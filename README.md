@@ -4,8 +4,8 @@ A travel web app for exploring destinations, checking real-time weather, browsin
 famous places, and planning a trip with an AI assistant. Built for the Designesthetics
 front-end developer assignment.
 
-**Live app:** _add your deployed URL here_
-**Repository:** _add your GitHub repo URL here_
+**Live app:** (https://meridian-travel-gcvzfet7t-kruthikas-projects-889fc7c9.vercel.app/)
+**Repository:** 
 
 ## Screenshots
 
