@@ -5,13 +5,9 @@ famous places, and planning a trip with an AI assistant. Built for the Designest
 front-end developer assignment.
 
 **Live app:** (https://meridian-travel-gcvzfet7t-kruthikas-projects-889fc7c9.vercel.app/)
-**Repository:** 
+**Repository:** https://github.com/kruthika-hegde/meridian--travel-app
 
 ## Screenshots
-
-_Add 3–4 screenshots here after deploying — the landing hero, the destination
-explorer, a destination detail page, and the itinerary planner in use. Drop the
-images in a `/screenshots` folder and reference them, e.g.:_
 
 ```md
 ![Landing page](./screenshots/landing.png)
