@@ -1,0 +1,47 @@
+.back-link {
+  display: inline-block;
+  font-size: var(--size-sm);
+  color: color-mix(in srgb, var(--color-charcoal) 65%, transparent);
+  text-decoration: none;
+  margin-bottom: var(--space-4);
+}
+
+.back-link:hover {
+  color: var(--color-brass);
+}
+
+.dest-detail__intro {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.dest-detail__weather-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dest-detail__description {
+  font-size: var(--size-md);
+  max-width: 68ch;
+  color: color-mix(in srgb, var(--color-charcoal) 82%, transparent);
+}
+
+.dest-detail__heading {
+  font-size: var(--size-2xl);
+  margin-bottom: var(--space-1);
+}
+
+.dest-detail__section-sub {
+  color: color-mix(in srgb, var(--color-charcoal) 65%, transparent);
+  margin-bottom: var(--space-4);
+  max-width: 60ch;
+}
+
+@media (max-width: 800px) {
+  .dest-detail__intro {
+    grid-template-columns: 1fr;
+  }
+}

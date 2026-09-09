@@ -1,0 +1,94 @@
+.itinerary-timeline__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-line);
+  margin-bottom: var(--space-4);
+}
+
+.itinerary-timeline__tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--size-sm);
+  cursor: pointer;
+  color: color-mix(in srgb, var(--color-charcoal) 60%, transparent);
+  margin-bottom: -1px;
+}
+
+.itinerary-timeline__tab--active {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-brass);
+}
+
+.itinerary-timeline__day-title {
+  font-size: var(--size-xl);
+  margin-bottom: var(--space-1);
+}
+
+.itinerary-timeline__day-summary {
+  color: color-mix(in srgb, var(--color-charcoal) 68%, transparent);
+  margin-bottom: var(--space-4);
+  max-width: 60ch;
+}
+
+.itinerary-timeline__activities {
+  position: relative;
+  padding-left: 28px;
+}
+
+.itinerary-timeline__activities::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: 1.5px;
+  background: var(--color-line);
+}
+
+.itinerary-timeline__activity {
+  position: relative;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+}
+
+.itinerary-timeline__activity::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-brass);
+  border: 2px solid var(--color-parchment);
+}
+
+.itinerary-timeline__time {
+  font-size: var(--size-xs);
+  color: var(--color-teal);
+  font-weight: 600;
+  padding-top: 2px;
+}
+
+.itinerary-timeline__activity-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.itinerary-timeline__activity-desc {
+  font-size: var(--size-sm);
+  color: color-mix(in srgb, var(--color-charcoal) 68%, transparent);
+}
+
+@media (max-width: 480px) {
+  .itinerary-timeline__activity {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

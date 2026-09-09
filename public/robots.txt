@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://meridian-travel-app-seven.vercel.app/sitemap.xml

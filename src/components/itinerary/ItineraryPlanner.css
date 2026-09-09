@@ -1,0 +1,109 @@
+.itinerary-planner {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.itinerary-planner__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: white;
+  position: sticky;
+  top: 84px;
+}
+
+.itinerary-planner__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.itinerary-planner__field label,
+.itinerary-planner__field legend {
+  font-size: var(--size-xs);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-charcoal) 70%, transparent);
+  padding: 0;
+}
+
+.itinerary-planner__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  width: fit-content;
+}
+
+.itinerary-planner__stepper button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--color-line);
+  background: none;
+  cursor: pointer;
+  font-size: var(--size-md);
+  line-height: 1;
+}
+
+.itinerary-planner__stepper button:hover {
+  border-color: var(--color-brass);
+}
+
+.itinerary-planner__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.itinerary-planner__field select {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--size-sm);
+  background: white;
+}
+
+.itinerary-planner__submit {
+  background: var(--color-brass);
+  color: var(--color-ink);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-weight: 600;
+  font-size: var(--size-sm);
+  cursor: pointer;
+  transition: background 0.15s var(--ease-out);
+}
+
+.itinerary-planner__submit:hover {
+  background: var(--color-brass-bright);
+}
+
+.itinerary-planner__submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.itinerary-planner__result {
+  min-height: 240px;
+}
+
+@media (max-width: 800px) {
+  .itinerary-planner {
+    grid-template-columns: 1fr;
+  }
+  .itinerary-planner__form {
+    position: static;
+  }
+}
