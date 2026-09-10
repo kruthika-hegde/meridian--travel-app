@@ -1,8 +1,8 @@
 const ENDPOINT = "/api/gemini";
-// Server function budgets ~8.5s internally (see api/gemini.js) and Vercel's
-// platform cap is 10s, so 11s here leaves enough margin for network/JSON
+// Server function budgets ~9.2s internally (see api/gemini.js) and Vercel's
+// platform cap is 10s, so 11.5s here leaves enough margin for network/JSON
 // overhead while still failing well before a user would call it "stuck."
-const CLIENT_TIMEOUT_MS = 11000;
+const CLIENT_TIMEOUT_MS = 11500;
 
 class GeminiApiError extends Error {
   constructor(message) {
@@ -85,7 +85,7 @@ export async function generateItinerary({ destination, days, interests, pace }) 
     }
   ]
 }
-Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible.`;
+Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible. Keep every "description" to one short sentence — brevity matters more than detail here.`;
 
   const userPrompt = `Destination: ${destination.name}, ${destination.country}
 Trip length: ${days} day${days > 1 ? "s" : ""}
