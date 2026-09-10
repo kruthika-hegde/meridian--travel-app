@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { generateItinerary, GeminiApiError } from "../../api/gemini";
+import { generateItinerary, addPlaceToItinerary, GeminiApiError } from "../../api/gemini";
 import { ItineraryTimeline } from "./ItineraryTimeline";
+import { AddPlaceCard } from "./AddPlaceCard";
 import { LoadingState, ErrorState } from "../common/StatusStates";
 import "./ItineraryPlanner.css";
 
@@ -14,6 +15,11 @@ export function ItineraryPlanner({ destination }) {
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [itinerary, setItinerary] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [activeDay, setActiveDay] = useState(0);
+
+  const [addPlaceStatus, setAddPlaceStatus] = useState("idle"); // idle | loading | success | error
+  const [addPlaceNote, setAddPlaceNote] = useState(null);
+  const [addPlaceError, setAddPlaceError] = useState(null);
 
   function toggleInterest(interest) {
     setInterests((prev) =>
@@ -25,9 +31,12 @@ export function ItineraryPlanner({ destination }) {
     e.preventDefault();
     setStatus("loading");
     setErrorMessage(null);
+    setAddPlaceStatus("idle");
+    setAddPlaceNote(null);
     try {
       const result = await generateItinerary({ destination, days, interests, pace });
       setItinerary(result);
+      setActiveDay(0);
       setStatus("success");
     } catch (err) {
       setStatus("error");
@@ -39,6 +48,30 @@ export function ItineraryPlanner({ destination }) {
           : import.meta.env.DEV
             ? `Couldn't generate an itinerary. ${err.message}`
             : "Couldn't generate an itinerary just now."
+      );
+    }
+  }
+
+  async function handleAddPlace(placeName) {
+    setAddPlaceStatus("loading");
+    setAddPlaceError(null);
+    try {
+      const { addedToDayIndex, note, day } = await addPlaceToItinerary({
+        destination,
+        days: itinerary,
+        placeName,
+      });
+      setItinerary((prev) => prev.map((d, i) => (i === addedToDayIndex ? day : d)));
+      setActiveDay(addedToDayIndex);
+      setAddPlaceNote(note);
+      setAddPlaceStatus("success");
+    } catch (err) {
+      console.error("Add place failed:", err);
+      setAddPlaceStatus("error");
+      setAddPlaceError(
+        import.meta.env.DEV
+          ? `Couldn't add that place. ${err.message}`
+          : "Couldn't add that place just now — try again."
       );
     }
   }
@@ -105,9 +138,19 @@ export function ItineraryPlanner({ destination }) {
       <div className="itinerary-planner__result">
         {status === "loading" && <LoadingState label="Building your itinerary…" />}
         {status === "error" && (
-          <ErrorState message={errorMessage} onRetry={() => handleGenerate({ preventDefault() {} })} />
+          <ErrorState message={errorMessage} onRetry={() => handleGenerate({ preventDefault() { } })} />
         )}
-        {status === "success" && itinerary && <ItineraryTimeline days={itinerary} />}
+        {status === "success" && itinerary && (
+          <>
+            <ItineraryTimeline days={itinerary} activeDay={activeDay} onDayChange={setActiveDay} />
+            <AddPlaceCard
+              onSubmit={handleAddPlace}
+              status={addPlaceStatus}
+              note={addPlaceNote}
+              errorMessage={addPlaceError}
+            />
+          </>
+        )}
       </div>
     </div>
   );

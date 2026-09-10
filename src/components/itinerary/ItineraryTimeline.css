@@ -92,3 +92,32 @@
     gap: 2px;
   }
 }
+
+.itinerary-timeline__activity--new {
+  animation: itinerary-new-highlight 2.4s ease-out;
+}
+
+@keyframes itinerary-new-highlight {
+  0% {
+    background: color-mix(in srgb, var(--color-brass) 22%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  100% {
+    background: transparent;
+  }
+}
+
+.itinerary-timeline__new-badge {
+  display: inline-block;
+  margin-left: var(--space-2);
+  padding: 1px 8px;
+  font-size: var(--size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  background: var(--color-brass);
+  border-radius: 999px;
+  vertical-align: middle;
+}

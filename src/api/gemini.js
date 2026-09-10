@@ -108,4 +108,59 @@ Known highlights to consider: ${destination.places.map((p) => p.name).join(", ")
   }
 }
 
+/**
+ * Insert a specific traveler-requested place into whichever existing day is
+ * geographically closest to it, reordering that one day if needed so the
+ * route stays sensible (no backtracking across the city on consecutive days).
+ * Only the affected day is returned (not the whole itinerary) to keep the
+ * response small and fast within the serverless timing budget.
+ */
+export async function addPlaceToItinerary({ destination, days: currentDays, placeName }) {
+  const systemInstruction = `You are a travel planner refining an existing day-by-day itinerary for ${destination.name}, ${destination.country}.
+The traveler wants to add a specific place to their trip: "${placeName}".
+
+Using your knowledge of ${destination.name}'s real geography, decide which SINGLE existing day's activities are located closest to "${placeName}" — same neighbourhood, district, or otherwise a short trip away. Travelers should never backtrack to the same area on a different day, so pick the day that avoids that.
+
+Insert exactly one new activity for "${placeName}" into that day, choosing whichever time slot ("Morning", "Afternoon", or "Evening") keeps the day's route geographically sensible, and reorder that day's existing activities if needed so the sequence flows through nearby places without doubling back. Mark only the newly added activity with "isNew": true; do not add "isNew" to any other activity.
+
+Respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this shape:
+{
+  "addedToDayIndex": 0,
+  "note": "one short sentence explaining why this day was chosen, mentioning what it's near",
+  "day": {
+    "title": "short day title",
+    "summary": "one sentence overview of the day",
+    "activities": [
+      { "time": "Morning" | "Afternoon" | "Evening", "title": "activity name", "description": "one short sentence", "isNew": true }
+    ]
+  }
+}
+"addedToDayIndex" is the zero-based index of the day you chose from the itinerary below. "day" is that ONE day's full updated activity list (including the untouched existing activities, in route order) — do not return any other days.`;
+
+  const userPrompt = `Current itinerary (zero-indexed days):
+${JSON.stringify(currentDays)}
+
+Place to add: ${placeName}`;
+
+  const raw = await callGemini({
+    systemInstruction,
+    contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+    responseMimeType: "application/json",
+  });
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed.addedToDayIndex !== "number" ||
+      !parsed.day ||
+      !Array.isArray(parsed.day.activities)
+    ) {
+      throw new Error("Malformed response shape");
+    }
+    return parsed;
+  } catch {
+    throw new GeminiApiError("Couldn't add that place. Try again.");
+  }
+}
+
 export { GeminiApiError };

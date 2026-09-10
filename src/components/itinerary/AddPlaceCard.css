@@ -1,0 +1,63 @@
+.add-place-card {
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px dashed var(--color-line);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-brass) 5%, white);
+}
+
+.add-place-card__title {
+    font-size: var(--size-md);
+    margin-bottom: var(--space-1);
+}
+
+.add-place-card__hint {
+    font-size: var(--size-sm);
+    color: color-mix(in srgb, var(--color-charcoal) 65%, transparent);
+    max-width: 60ch;
+    margin-bottom: var(--space-3);
+}
+
+.add-place-card__form {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.add-place-card__form input {
+    flex: 1;
+    min-width: 200px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-body);
+    font-size: var(--size-sm);
+}
+
+.add-place-card__form button {
+    background: var(--color-ink);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-4);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.add-place-card__form button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.add-place-card__note {
+    margin-top: var(--space-3);
+    font-size: var(--size-sm);
+    color: color-mix(in srgb, var(--color-charcoal) 80%, transparent);
+}
+
+.add-place-card__error {
+    margin-top: var(--space-3);
+    font-size: var(--size-sm);
+    color: var(--color-error, #b3261e);
+}

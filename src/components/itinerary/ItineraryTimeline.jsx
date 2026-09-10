@@ -1,9 +1,6 @@
-import { useState } from "react";
 import "./ItineraryTimeline.css";
 
-export function ItineraryTimeline({ days }) {
-  const [activeDay, setActiveDay] = useState(0);
-
+export function ItineraryTimeline({ days, activeDay, onDayChange }) {
   return (
     <div className="itinerary-timeline">
       <div className="itinerary-timeline__tabs" role="tablist" aria-label="Itinerary days">
@@ -13,7 +10,7 @@ export function ItineraryTimeline({ days }) {
             role="tab"
             aria-selected={activeDay === i}
             className={activeDay === i ? "itinerary-timeline__tab itinerary-timeline__tab--active" : "itinerary-timeline__tab"}
-            onClick={() => setActiveDay(i)}
+            onClick={() => onDayChange(i)}
           >
             Day {i + 1}
           </button>
@@ -32,10 +29,20 @@ export function ItineraryTimeline({ days }) {
 
           <ol className="itinerary-timeline__activities">
             {day.activities.map((activity, j) => (
-              <li key={j} className="itinerary-timeline__activity">
+              <li
+                key={j}
+                className={
+                  activity.isNew
+                    ? "itinerary-timeline__activity itinerary-timeline__activity--new"
+                    : "itinerary-timeline__activity"
+                }
+              >
                 <span className="itinerary-timeline__time">{activity.time}</span>
                 <div>
-                  <p className="itinerary-timeline__activity-title">{activity.title}</p>
+                  <p className="itinerary-timeline__activity-title">
+                    {activity.title}
+                    {activity.isNew && <span className="itinerary-timeline__new-badge">New</span>}
+                  </p>
                   <p className="itinerary-timeline__activity-desc">{activity.description}</p>
                 </div>
               </li>
