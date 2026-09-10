@@ -1,5 +1,8 @@
 const ENDPOINT = "/api/gemini";
-const CLIENT_TIMEOUT_MS = 20000;
+// Server function budgets ~8.5s internally (see api/gemini.js) and Vercel's
+// platform cap is 10s, so 11s here leaves enough margin for network/JSON
+// overhead while still failing well before a user would call it "stuck."
+const CLIENT_TIMEOUT_MS = 11000;
 
 class GeminiApiError extends Error {
   constructor(message) {
