@@ -8,12 +8,58 @@ const SUGGESTIONS = [
   "What should I budget per day?",
 ];
 
+function SparkleIcon({ width = 18, height = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={width} height={height} fill="none" aria-hidden="true">
+      <path
+        d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"
+        fill="currentColor"
+      />
+      <path d="M19 15l.7 1.9L21.5 17.5l-1.8.6L19 20l-.7-1.9-1.8-.6 1.8-.6L19 15Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function ChatWidget({ destination }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending | error
   const listRef = useRef(null);
+
+  // The launcher is fixed to the viewport, so once the page is scrolled all
+  // the way down the footer sits at the same spot regardless of page length.
+  // Snap the widget up by the footer's full height the moment any part of
+  // the footer enters view, and keep it there — don't recompute continuously
+  // off the visible intersection area, which causes jittery re-triggering as
+  // more of the footer scrolls into view.
+  const [dockedAboveFooter, setDockedAboveFooter] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  useEffect(() => {
+    const footer = document.querySelector(".site-footer");
+    if (!footer) return;
+
+    setFooterHeight(footer.offsetHeight);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => setDockedAboveFooter(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    intersectionObserver.observe(footer);
+
+    // Footer height can change (text wrapping on resize) — keep it current.
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => setFooterHeight(footer.offsetHeight))
+        : null;
+    resizeObserver?.observe(footer);
+
+    return () => {
+      intersectionObserver.disconnect();
+      resizeObserver?.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (listRef.current) {
@@ -54,11 +100,20 @@ export function ChatWidget({ destination }) {
   }
 
   return (
-    <div className="chat-widget">
+    <div
+      className="chat-widget"
+      style={{ bottom: dockedAboveFooter ? `calc(var(--space-4) + ${footerHeight}px)` : "var(--space-4)" }}
+    >
       {open && (
-        <div className="chat-widget__panel" role="dialog" aria-label={`Ask about ${destination.name}`}>
+        <div className="chat-widget__panel" role="dialog" aria-label={`AI assistant — ask about ${destination.name}`}>
           <div className="chat-widget__header">
-            <p>Ask about {destination.name}</p>
+            <div>
+              <p className="chat-widget__header-title">
+                <SparkleIcon width={15} height={15} />
+                Ask about {destination.name}
+              </p>
+              <p className="chat-widget__header-subtitle">AI travel assistant</p>
+            </div>
             <button
               type="button"
               className="chat-widget__close"
@@ -129,16 +184,18 @@ export function ChatWidget({ destination }) {
 
       <button
         type="button"
-        className="chat-widget__launcher"
+        className={open ? "chat-widget__launcher chat-widget__launcher--open" : "chat-widget__launcher"}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
+        aria-label={open ? "Close AI travel assistant" : "Ask the AI travel assistant a question"}
       >
         {open ? (
           <svg viewBox="0 0 16 16" width="18" height="18" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
         ) : (
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-            <path d="M4 5.5h16v10H9l-4 3.5v-3.5H4v-10Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
+          <>
+            <SparkleIcon />
+            <span className="chat-widget__launcher-label">Ask AI</span>
+          </>
         )}
       </button>
     </div>

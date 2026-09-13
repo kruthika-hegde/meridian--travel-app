@@ -21,7 +21,7 @@ export function SearchFilterBar({
         <input
           id="destination-search"
           type="text"
-          placeholder="Search destinations or countries…"
+          placeholder="Search destinations…"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
         />

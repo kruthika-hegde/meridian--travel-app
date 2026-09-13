@@ -15,8 +15,14 @@
   border: 1px solid var(--color-line);
   border-radius: 999px;
   padding: 0.6rem 1rem;
-  min-width: 260px;
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 360px;
   color: color-mix(in srgb, var(--color-charcoal) 55%, transparent);
+}
+
+.search-filter-bar__search svg {
+  flex-shrink: 0;
 }
 
 .search-filter-bar__search input {
@@ -27,6 +33,7 @@
   font-size: var(--size-sm);
   color: var(--color-charcoal);
   width: 100%;
+  min-width: 0;
 }
 
 .search-filter-bar__chips {
@@ -64,6 +71,15 @@
 }
 
 @media (max-width: 640px) {
+  .search-filter-bar__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .search-filter-bar__search input {
+    font-size: var(--size-xs);
+  }
+
   .search-filter-bar__count {
     margin-left: 0;
     order: 3;
