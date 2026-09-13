@@ -20,7 +20,7 @@ export function Header() {
           Meridian
         </Link>
         <nav className="site-header__nav" aria-label="Primary">
-          <Link to="/">Explore</Link>
+          <Link to="/explore">Explore</Link>
         </nav>
         <LocationControl />
       </div>

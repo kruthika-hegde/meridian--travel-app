@@ -1,15 +1,11 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import "./Hero.css";
 
-// Placeholder — swap for a downloaded royalty-free clip (see README "Hero video").
-// Point this at a file in /public/video/ once you've picked one from Coverr or Mixkit;
-// don't ship a hotlinked third-party URL to production.
 const VIDEO_SRC = "/video/hero.mp4";
 
-export function Hero({ onExplore }) {
+export function Hero() {
   const videoRef = useRef(null);
-  // If the clip 404s or fails to decode, fall back to a plain gradient rather
-  // than a broken video frame — a real "failed request" state, not decoration.
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
@@ -42,16 +38,12 @@ export function Hero({ onExplore }) {
           Real-time weather, the places worth your time, and an assistant that
           can turn all of it into a plan — for anywhere you point it.
         </p>
-        <button type="button" className="hero__cta" onClick={onExplore}>
+        <Link to="/explore" className="hero__cta">
           Explore destinations
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
-      </div>
-
-      <div className="hero__scroll-cue" aria-hidden="true">
-        <span />
+        </Link>
       </div>
     </section>
   );
