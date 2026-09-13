@@ -80,9 +80,12 @@ Keep answers to 2-4 short sentences unless the visitor asks for more detail. Do 
 }
 
 /**
- * Generate a structured day-by-day itinerary as JSON.
+ * Generate a structured day-by-day itinerary as JSON. If `mustVisit` places
+ * are given, they're woven into the plan itself — each one grouped into
+ * whichever day it makes the most geographic sense alongside, rather than
+ * generated first and bolted on afterward.
  */
-export async function generateItinerary({ destination, days, interests, pace }) {
+export async function generateItinerary({ destination, days, interests, pace, mustVisit = [] }) {
   const systemInstruction = `You are a travel planner. Respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this shape:
 {
   "days": [
@@ -95,13 +98,19 @@ export async function generateItinerary({ destination, days, interests, pace }) 
     }
   ]
 }
-Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible. Keep every "description" to one short sentence — brevity matters more than detail here.`;
+Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible. Keep every "description" to one short sentence — brevity matters more than detail here.${mustVisit.length
+      ? ` The traveler specifically wants these places included: ${mustVisit.join(
+        ", "
+      )}. Using your knowledge of ${destination.name}'s real geography, group each one into whichever day's other activities are closest to it — same neighbourhood or district — so the traveler never has to backtrack across the city on a different day for something nearby. Every place listed must appear exactly once, somewhere in the itinerary.`
+      : ""
+    }`;
 
   const userPrompt = `Destination: ${destination.name}, ${destination.country}
 Trip length: ${days} day${days > 1 ? "s" : ""}
 Traveler interests: ${interests.length ? interests.join(", ") : "general sightseeing"}
 Pace: ${pace}
-Known highlights to consider: ${destination.places.map((p) => p.name).join(", ")}`;
+Known highlights to consider: ${destination.places.map((p) => p.name).join(", ")}${mustVisit.length ? `\nMust-visit places (include exactly once each, grouped geographically): ${mustVisit.join(", ")}` : ""
+    }`;
 
   const raw = await callGemini({
     systemInstruction,

@@ -17,6 +17,12 @@ export function ItineraryPlanner({ destination }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeDay, setActiveDay] = useState(0);
 
+  // Places the traveler wants included from the start — woven into
+  // generation itself rather than bolted on after.
+  const [mustVisitInput, setMustVisitInput] = useState("");
+  const [mustVisit, setMustVisit] = useState([]);
+
+  // Places added after the itinerary already exists.
   const [addPlaceStatus, setAddPlaceStatus] = useState("idle"); // idle | loading | success | error
   const [addPlaceNote, setAddPlaceNote] = useState(null);
   const [addPlaceError, setAddPlaceError] = useState(null);
@@ -27,6 +33,29 @@ export function ItineraryPlanner({ destination }) {
     );
   }
 
+  function handleDaysChange(rawValue) {
+    const parsed = parseInt(rawValue, 10);
+    if (Number.isNaN(parsed)) {
+      setDays(1);
+      return;
+    }
+    setDays(Math.max(1, parsed));
+  }
+
+  function addMustVisitPlace() {
+    const trimmed = mustVisitInput.trim();
+    if (!trimmed) return;
+    const alreadyAdded = mustVisit.some((p) => p.toLowerCase() === trimmed.toLowerCase());
+    if (!alreadyAdded) {
+      setMustVisit((prev) => [...prev, trimmed]);
+    }
+    setMustVisitInput("");
+  }
+
+  function removeMustVisitPlace(index) {
+    setMustVisit((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleGenerate(e) {
     e.preventDefault();
     setStatus("loading");
@@ -34,7 +63,7 @@ export function ItineraryPlanner({ destination }) {
     setAddPlaceStatus("idle");
     setAddPlaceNote(null);
     try {
-      const result = await generateItinerary({ destination, days, interests, pace });
+      const result = await generateItinerary({ destination, days, interests, pace, mustVisit });
       setItinerary(result);
       setActiveDay(0);
       setStatus("success");
@@ -42,12 +71,15 @@ export function ItineraryPlanner({ destination }) {
       setStatus("error");
       console.error("Itinerary generation failed:", err);
       const isMissingKey = err instanceof GeminiApiError && err.message.includes("GEMINI_API_KEY");
+      const isTimeout = err instanceof GeminiApiError && err.message.includes("took too long");
       setErrorMessage(
         isMissingKey
           ? "The planner isn't configured yet — add a Gemini API key to enable it."
-          : import.meta.env.DEV
-            ? `Couldn't generate an itinerary. ${err.message}`
-            : "Couldn't generate an itinerary just now."
+          : isTimeout && days > 10
+            ? "That trip length took too long for the AI to plan in one go. Try a shorter trip, or try again."
+            : import.meta.env.DEV
+              ? `Couldn't generate an itinerary. ${err.message}`
+              : "Couldn't generate an itinerary just now."
       );
     }
   }
@@ -89,17 +121,25 @@ export function ItineraryPlanner({ destination }) {
             >
               −
             </button>
-            <span id="days" aria-live="polite">
-              {days} day{days > 1 ? "s" : ""}
-            </span>
-            <button
-              type="button"
-              onClick={() => setDays((d) => Math.min(10, d + 1))}
-              aria-label="More days"
-            >
+            <input
+              id="days"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              value={days}
+              onChange={(e) => handleDaysChange(e.target.value)}
+              className="itinerary-planner__stepper-input"
+              aria-label="Number of days"
+            />
+            <button type="button" onClick={() => setDays((d) => d + 1)} aria-label="More days">
               +
             </button>
           </div>
+          {days > 14 && (
+            <p className="itinerary-planner__hint">
+              Longer trips take the AI more time to generate and may need a retry — 5–10 days tends to be fastest.
+            </p>
+          )}
         </div>
 
         <fieldset className="itinerary-planner__field">
@@ -128,6 +168,47 @@ export function ItineraryPlanner({ destination }) {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="itinerary-planner__field">
+          <label htmlFor="must-visit-input">Places you want included (optional)</label>
+          <div className="itinerary-planner__must-visit-input">
+            <input
+              id="must-visit-input"
+              type="text"
+              value={mustVisitInput}
+              onChange={(e) => setMustVisitInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addMustVisitPlace();
+                }
+              }}
+              placeholder="e.g. Amber Fort"
+            />
+            <button type="button" onClick={addMustVisitPlace} disabled={!mustVisitInput.trim()}>
+              Add
+            </button>
+          </div>
+          {mustVisit.length > 0 && (
+            <div className="itinerary-planner__chips">
+              {mustVisit.map((place, i) => (
+                <span key={place} className="chip chip--removable">
+                  {place}
+                  <button
+                    type="button"
+                    onClick={() => removeMustVisitPlace(i)}
+                    aria-label={`Remove ${place}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="itinerary-planner__hint">
+            Leave blank and the assistant will choose everything for you.
+          </p>
         </div>
 
         <button type="submit" className="itinerary-planner__submit" disabled={status === "loading"}>
