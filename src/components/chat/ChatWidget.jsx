@@ -27,40 +27,6 @@ export function ChatWidget({ destination }) {
   const [status, setStatus] = useState("idle"); // idle | sending | error
   const listRef = useRef(null);
 
-  // The launcher is fixed to the viewport, so once the page is scrolled all
-  // the way down the footer sits at the same spot regardless of page length.
-  // Snap the widget up by the footer's full height the moment any part of
-  // the footer enters view, and keep it there — don't recompute continuously
-  // off the visible intersection area, which causes jittery re-triggering as
-  // more of the footer scrolls into view.
-  const [dockedAboveFooter, setDockedAboveFooter] = useState(false);
-  const [footerHeight, setFooterHeight] = useState(0);
-
-  useEffect(() => {
-    const footer = document.querySelector(".site-footer");
-    if (!footer) return;
-
-    setFooterHeight(footer.offsetHeight);
-
-    const intersectionObserver = new IntersectionObserver(
-      ([entry]) => setDockedAboveFooter(entry.isIntersecting),
-      { threshold: 0 }
-    );
-    intersectionObserver.observe(footer);
-
-    // Footer height can change (text wrapping on resize) — keep it current.
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => setFooterHeight(footer.offsetHeight))
-        : null;
-    resizeObserver?.observe(footer);
-
-    return () => {
-      intersectionObserver.disconnect();
-      resizeObserver?.disconnect();
-    };
-  }, []);
-
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -100,11 +66,9 @@ export function ChatWidget({ destination }) {
   }
 
   return (
-    <div
-      className="chat-widget"
-      style={{ bottom: dockedAboveFooter ? `calc(var(--space-4) + ${footerHeight}px)` : "var(--space-4)" }}
-    >
-      {open && (
+    <div className="chat-widget-overlay">
+      <div className="chat-widget">
+        {open && (
         <div className="chat-widget__panel" role="dialog" aria-label={`AI assistant — ask about ${destination.name}`}>
           <div className="chat-widget__header">
             <div>
@@ -198,6 +162,7 @@ export function ChatWidget({ destination }) {
           </>
         )}
       </button>
+      </div>
     </div>
   );
 }

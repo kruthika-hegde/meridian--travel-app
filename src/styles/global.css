@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
 @import "./tokens.css";
 
 @font-face {
@@ -24,6 +25,14 @@ body {
   font-size: var(--size-base);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Establishes the containing block for the chat widget's full-height
+   overlay (see ChatWidget.css) so it can span exactly the page content
+   area and stop before the footer, using pure CSS sticky positioning
+   instead of scroll-tracking JavaScript. */
+#main {
+  position: relative;
 }
 
 img,
@@ -119,6 +128,7 @@ ol {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

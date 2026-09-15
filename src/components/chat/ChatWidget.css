@@ -1,9 +1,31 @@
-.chat-widget {
-  position: fixed;
-  right: var(--space-4);
-  bottom: var(--space-4);
+/* Spans the full height of #main (see global.css) — from the top of the
+   page content down to exactly where the footer begins, since the footer
+   is a sibling rendered after #main, not inside it. The widget's natural
+   (unstuck) resting position needs to be at the BOTTOM of this box for
+   sticky to work correctly — hence flex-end on both axes. pointer-events:
+   none so this overlay never blocks clicks/scrolling on the actual page
+   content; only the widget itself re-enables pointer events. */
+.chat-widget-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: var(--space-5);
+  pointer-events: none;
   z-index: 50;
-  transition: bottom 0.15s var(--ease-out, ease);
+}
+
+/* position: sticky (not fixed) is the key: it holds the widget at bottom:X
+   relative to the viewport while scrolling through .chat-widget-overlay's
+   height, then naturally stops and scrolls away with the page once the
+   overlay's own bottom edge (= end of #main, right before the footer) is
+   reached. No scroll-tracking JavaScript needed, and no jitter. */
+.chat-widget {
+  position: sticky;
+  bottom: var(--space-5);
+  pointer-events: auto;
 }
 
 .chat-widget__launcher {
@@ -43,12 +65,9 @@
 }
 
 @keyframes chat-launcher-attention {
-
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: var(--shadow-soft);
   }
-
   50% {
     box-shadow: var(--shadow-soft), 0 0 0 6px color-mix(in srgb, var(--color-brass) 35%, transparent);
   }
@@ -81,7 +100,6 @@
     opacity: 0;
     transform: translateY(8px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -209,20 +227,15 @@
 .chat-bubble--typing span:nth-child(2) {
   animation-delay: 0.15s;
 }
-
 .chat-bubble--typing span:nth-child(3) {
   animation-delay: 0.3s;
 }
 
 @keyframes typing {
-
-  0%,
-  60%,
-  100% {
+  0%, 60%, 100% {
     transform: translateY(0);
     opacity: 0.5;
   }
-
   30% {
     transform: translateY(-3px);
     opacity: 1;

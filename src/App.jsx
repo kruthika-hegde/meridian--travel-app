@@ -5,10 +5,15 @@ import { Footer } from "./components/layout/Footer";
 import { LoadingState } from "./components/common/StatusStates";
 import { LocationProvider } from "./context/LocationContext";
 
+// Route-level code splitting: each page ships as its own chunk, loaded on
+// demand, instead of bloating the initial bundle with every page up front.
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
 const Explore = lazy(() => import("./pages/Explore").then((m) => ({ default: m.Explore })));
 const DestinationDetail = lazy(() =>
   import("./pages/DestinationDetail").then((m) => ({ default: m.DestinationDetail }))
+);
+const ItineraryResult = lazy(() =>
+  import("./pages/ItineraryResult").then((m) => ({ default: m.ItineraryResult }))
 );
 const NotFound = lazy(() => import("./pages/NotFound").then((m) => ({ default: m.NotFound })));
 
@@ -25,6 +30,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/destinations/:id" element={<DestinationDetail />} />
+            <Route path="/destinations/:id/itinerary" element={<ItineraryResult />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

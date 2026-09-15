@@ -1,0 +1,14 @@
+.itinerary-result {
+  padding-block: var(--space-6);
+}
+
+.itinerary-result__heading {
+  font-size: var(--size-2xl);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.itinerary-result__sub {
+  color: color-mix(in srgb, var(--color-charcoal) 60%, transparent);
+  margin-bottom: var(--space-5);
+}

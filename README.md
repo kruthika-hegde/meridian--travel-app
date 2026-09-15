@@ -80,18 +80,42 @@ timeout server-side, and every function applies a basic per-IP rate limit
 
 ## Getting started locally
 
-Because API calls now go through serverless functions, plain `npm run dev`
-(the Vite dev server) can't run them — Vite only serves static files and
-doesn't execute `/api/*.js`. Use the Vercel CLI instead, which runs both the
-Vite frontend and the serverless functions together:
+Because API calls go through serverless functions in `/api`, plain Vite alone
+can't run them — Vite only serves static files. This project runs two
+servers side by side instead of relying on `vercel dev`'s combined
+frontend+API proxy, which turned out to be unreliable across CLI versions on
+some machines. This setup is deliberate and permanent, not a workaround:
 
 ```bash
-npm install -g vercel   # one-time
-npm install
+npm ci                  # NOT npm install — see "Reproducible installs" below
 cp .env.example .env
 # fill in your API keys in .env
-vercel dev
+npm run dev:full        # runs both servers together
 ```
+
+`npm run dev:full` starts the Vite frontend (`http://localhost:5173`) and a
+`vercel dev` instance that serves **only** `/api/*` (on port 3001, never
+opened directly in a browser). Vite's own dev server proxies any `/api/*`
+request over to it automatically (see `vite.config.js`). Open
+`http://localhost:5173` — not port 3000 or 3001 — to use the app.
+
+If you'd rather run them separately in two terminals:
+```bash
+npm run dev       # frontend, http://localhost:5173
+npm run dev:api   # api functions only, port 3001
+```
+
+### Reproducible installs — always use `npm ci`, not `npm install`
+
+This project pins exact versions of `vite`, `@vitejs/plugin-react`, and
+`vercel` (no `^` ranges) and commits `package-lock.json`. **Always run
+`npm ci`** to set up the project — it installs exactly what's in the
+lockfile and never silently upgrades anything. `npm install` is allowed to
+pull newer versions that satisfy a range, which is how this project
+previously ended up on an untested Vite major version and a broken Vercel
+CLI release, costing real debugging time. If you ever need to intentionally
+upgrade a dependency, do it deliberately (`npm install <pkg>@<version>`),
+test it, then commit the updated lockfile — don't let it happen by accident.
 
 ### API keys
 
