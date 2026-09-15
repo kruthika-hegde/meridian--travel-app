@@ -5,6 +5,7 @@ import { generateItinerary, addPlaceToItinerary, GeminiApiError } from "../api/g
 import { ItineraryTimeline } from "../components/itinerary/ItineraryTimeline";
 import { AddPlaceCard } from "../components/itinerary/AddPlaceCard";
 import { LoadingState, ErrorState } from "../components/common/StatusStates";
+import { ChatWidget } from "../components/chat/ChatWidget";
 import "./ItineraryResult.css";
 
 export function ItineraryResult() {
@@ -131,6 +132,7 @@ export function ItineraryResult() {
           />
         </>
       )}
+      <ChatWidget destination={destination} />
     </div>
   );
 }

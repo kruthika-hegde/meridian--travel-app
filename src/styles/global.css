@@ -31,8 +31,15 @@ body {
    overlay (see ChatWidget.css) so it can span exactly the page content
    area and stop before the footer, using pure CSS sticky positioning
    instead of scroll-tracking JavaScript. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 #main {
   position: relative;
+  flex: 1;
 }
 
 img,
