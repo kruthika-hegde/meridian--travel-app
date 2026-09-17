@@ -2,6 +2,13 @@
   padding-block: var(--space-6);
 }
 
+.itinerary-result__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
 .itinerary-result__heading {
   font-size: var(--size-2xl);
   margin-top: var(--space-3);
@@ -10,5 +17,70 @@
 
 .itinerary-result__sub {
   color: color-mix(in srgb, var(--color-charcoal) 60%, transparent);
-  margin-bottom: var(--space-5);
+  max-width: 60ch;
+}
+
+.itinerary-result__edit {
+  flex-shrink: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--size-sm);
+  color: var(--color-charcoal);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.itinerary-result__edit:hover {
+  border-color: var(--color-brass);
+}
+
+.itinerary-result__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.itinerary-result__pill {
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--size-xs);
+  font-weight: 600;
+  background: white;
+  color: var(--color-charcoal);
+}
+
+.itinerary-result__pill--accent {
+  border-color: color-mix(in srgb, var(--color-brass) 40%, transparent);
+  background: color-mix(in srgb, var(--color-brass) 8%, white);
+  color: color-mix(in srgb, var(--color-brass) 70%, var(--color-ink));
+}
+
+.itinerary-result__tip {
+  margin-top: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-parchment);
+  padding: var(--space-4);
+}
+
+.itinerary-result__tip-label {
+  font-size: var(--size-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-brass-bright) 90%, transparent);
+  margin-bottom: var(--space-1);
+}
+
+.itinerary-result__tip-text {
+  margin: 0;
+  max-width: 60ch;
+}
+
+@media (max-width: 600px) {
+  .itinerary-result__header {
+    flex-direction: column;
+  }
 }

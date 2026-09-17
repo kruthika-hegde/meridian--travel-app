@@ -4,8 +4,8 @@ import { getDestinationById } from "../data/destinations";
 import { generateItinerary, addPlaceToItinerary, GeminiApiError } from "../api/gemini";
 import { ItineraryTimeline } from "../components/itinerary/ItineraryTimeline";
 import { AddPlaceCard } from "../components/itinerary/AddPlaceCard";
-import { LoadingState, ErrorState } from "../components/common/StatusStates";
 import { ChatWidget } from "../components/chat/ChatWidget";
+import { LoadingState, ErrorState } from "../components/common/StatusStates";
 import "./ItineraryResult.css";
 
 export function ItineraryResult() {
@@ -18,6 +18,7 @@ export function ItineraryResult() {
   const params = routerLocation.state;
 
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  // Holds the full generated object: { currencySymbol, bestTimeToVisit, localTip, days }
   const [itinerary, setItinerary] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [activeDay, setActiveDay] = useState(0);
@@ -64,10 +65,13 @@ export function ItineraryResult() {
     try {
       const { addedToDayIndex, note, day } = await addPlaceToItinerary({
         destination,
-        days: itinerary,
+        days: itinerary.days,
         placeName,
       });
-      setItinerary((prev) => prev.map((d, i) => (i === addedToDayIndex ? day : d)));
+      setItinerary((prev) => ({
+        ...prev,
+        days: prev.days.map((d, i) => (i === addedToDayIndex ? day : d)),
+      }));
       setActiveDay(addedToDayIndex);
       setAddPlaceNote(note);
       setAddPlaceStatus("success");
@@ -107,29 +111,75 @@ export function ItineraryResult() {
     );
   }
 
+  const totalCost =
+    itinerary?.days?.reduce((sum, d) => sum + (typeof d.estimatedCost === "number" ? d.estimatedCost : 0), 0) ?? null;
+
   return (
     <div className="container itinerary-result">
-      <Link to={`/destinations/${destination.id}`} className="back-link">
-        ← Back to {destination.name}
-      </Link>
-      <h1 className="itinerary-result__heading">
-        Your {params.days}-day {destination.name} itinerary
-      </h1>
-      <p className="itinerary-result__sub">
-        {params.interests.length ? params.interests.join(", ") : "General sightseeing"} · {params.pace} pace
-      </p>
+      <div className="itinerary-result__header">
+        <div>
+          <Link to={`/destinations/${destination.id}`} className="back-link">
+            ← Back to {destination.name}
+          </Link>
+          <h1 className="itinerary-result__heading">
+            Your {params.days}-day {destination.name} itinerary
+          </h1>
+          {itinerary?.bestTimeToVisit ? (
+            <p className="itinerary-result__sub">{itinerary.bestTimeToVisit}</p>
+          ) : (
+            <p className="itinerary-result__sub">
+              {params.interests.length ? params.interests.join(", ") : "General sightseeing"} · {params.pace} pace
+            </p>
+          )}
+        </div>
+        <Link to={`/destinations/${destination.id}#plan`} className="itinerary-result__edit">
+          ← Edit
+        </Link>
+      </div>
+
+      {status === "success" && itinerary && (
+        <div className="itinerary-result__pills">
+          <span className="itinerary-result__pill">
+            {params.days} day{params.days > 1 ? "s" : ""}
+          </span>
+          {params.budget && (
+            <span className="itinerary-result__pill itinerary-result__pill--accent">
+              {itinerary.currencySymbol}
+              {params.budget} / day target
+            </span>
+          )}
+          {totalCost !== null && (
+            <span className="itinerary-result__pill itinerary-result__pill--accent">
+              {itinerary.currencySymbol}
+              {totalCost.toLocaleString()} est. total
+            </span>
+          )}
+        </div>
+      )}
 
       {status === "loading" && <LoadingState label="Building your itinerary…" />}
       {status === "error" && <ErrorState message={errorMessage} onRetry={runGenerate} />}
       {status === "success" && itinerary && (
         <>
-          <ItineraryTimeline days={itinerary} activeDay={activeDay} onDayChange={setActiveDay} />
+          <ItineraryTimeline
+            days={itinerary.days}
+            activeDay={activeDay}
+            onDayChange={setActiveDay}
+            destinationName={destination.name}
+            currencySymbol={itinerary.currencySymbol}
+          />
           <AddPlaceCard
             onSubmit={handleAddPlace}
             status={addPlaceStatus}
             note={addPlaceNote}
             errorMessage={addPlaceError}
           />
+          {itinerary.localTip && (
+            <div className="itinerary-result__tip">
+              <p className="itinerary-result__tip-label">Local tip</p>
+              <p className="itinerary-result__tip-text">{itinerary.localTip}</p>
+            </div>
+          )}
         </>
       )}
       <ChatWidget destination={destination} />

@@ -10,6 +10,7 @@ export function ItineraryPlanner({ destination }) {
   const [days, setDays] = useState(3);
   const [interests, setInterests] = useState([]);
   const [pace, setPace] = useState("Balanced");
+  const [budget, setBudget] = useState("");
 
   // Places the traveler wants included from the start — woven into
   // generation itself rather than bolted on after.
@@ -42,7 +43,7 @@ export function ItineraryPlanner({ destination }) {
     // automatically on load there — this form just collects inputs and hands
     // them off via router state.
     navigate(`/destinations/${destination.id}/itinerary`, {
-      state: { destination, days, interests, pace, mustVisit },
+      state: { destination, days, interests, pace, budget: budget.trim(), mustVisit },
     });
   }
 
@@ -90,6 +91,22 @@ export function ItineraryPlanner({ destination }) {
               ))}
             </div>
           </fieldset>
+
+          <div className="itinerary-planner__field">
+            <label htmlFor="budget">
+              Budget per day <span className="itinerary-planner__optional">(optional)</span>
+            </label>
+            <input
+              id="budget"
+              type="number"
+              inputMode="numeric"
+              min="0"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="e.g. 150"
+            />
+            <p className="itinerary-planner__hint">In your local currency — helps steer suggestions.</p>
+          </div>
 
           <div className="itinerary-planner__field">
             <label htmlFor="pace">Pace</label>
