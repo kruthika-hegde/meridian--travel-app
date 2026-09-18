@@ -155,7 +155,8 @@
   background: white;
 }
 
-.itinerary-planner__field input[type="number"] {
+.itinerary-planner__field input[type="number"],
+.itinerary-planner__field input[type="text"] {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-sm);
   padding: var(--space-2);
@@ -165,7 +166,8 @@
   background: white;
 }
 
-.itinerary-planner__field input[type="number"]:focus {
+.itinerary-planner__field input[type="number"]:focus,
+.itinerary-planner__field input[type="text"]:focus {
   outline: none;
   border-color: var(--color-brass);
 }

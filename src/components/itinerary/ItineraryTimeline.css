@@ -97,6 +97,26 @@
   margin: 0;
 }
 
+.itinerary-timeline__cost-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--size-xs);
+  color: color-mix(in srgb, var(--color-charcoal) 65%, transparent);
+}
+
+.itinerary-timeline__route {
+  font-size: var(--size-xs);
+  color: color-mix(in srgb, var(--color-charcoal) 60%, transparent);
+  margin-bottom: var(--space-4);
+}
+
+.itinerary-timeline__route--warn {
+  color: color-mix(in srgb, #b5540f 85%, var(--color-charcoal));
+  font-weight: 600;
+}
+
 .itinerary-timeline__day-summary {
   color: color-mix(in srgb, var(--color-charcoal) 68%, transparent);
   margin-bottom: var(--space-4);
@@ -167,6 +187,72 @@
   color: var(--color-ink);
   background: var(--color-brass);
   border-radius: 999px;
+}
+
+.itinerary-timeline__section-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.itinerary-timeline__section-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.itinerary-timeline__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.itinerary-timeline__reorder button {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+  background: white;
+  cursor: pointer;
+  line-height: 1;
+  font-size: var(--size-sm);
+}
+
+.itinerary-timeline__reorder button:hover:not(:disabled) {
+  border-color: var(--color-brass);
+}
+
+.itinerary-timeline__reorder button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.verify-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  vertical-align: middle;
+  margin-left: 4px;
+  text-transform: uppercase;
+}
+
+.verify-badge--ok {
+  background: color-mix(in srgb, var(--color-teal) 15%, white);
+  color: var(--color-teal);
+}
+
+.verify-badge--warn {
+  background: color-mix(in srgb, #b5540f 15%, white);
+  color: #b5540f;
+}
+
+.verify-badge--bad {
+  background: color-mix(in srgb, #b3261e 12%, white);
+  color: #b3261e;
 }
 
 .itinerary-timeline__section-title {

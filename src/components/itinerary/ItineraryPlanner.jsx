@@ -11,6 +11,8 @@ export function ItineraryPlanner({ destination }) {
   const [interests, setInterests] = useState([]);
   const [pace, setPace] = useState("Balanced");
   const [budget, setBudget] = useState("");
+  const [dietary, setDietary] = useState("");
+  const [travelStyle, setTravelStyle] = useState("");
 
   // Places the traveler wants included from the start — woven into
   // generation itself rather than bolted on after.
@@ -43,7 +45,7 @@ export function ItineraryPlanner({ destination }) {
     // automatically on load there — this form just collects inputs and hands
     // them off via router state.
     navigate(`/destinations/${destination.id}/itinerary`, {
-      state: { destination, days, interests, pace, budget: budget.trim(), mustVisit },
+      state: { destination, days, interests, pace, budget: budget.trim(), mustVisit, dietary: dietary.trim(), travelStyle: travelStyle.trim() },
     });
   }
 
@@ -117,6 +119,32 @@ export function ItineraryPlanner({ destination }) {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="itinerary-planner__field">
+            <label htmlFor="dietary">
+              Dietary needs <span className="itinerary-planner__optional">(optional)</span>
+            </label>
+            <input
+              id="dietary"
+              type="text"
+              value={dietary}
+              onChange={(e) => setDietary(e.target.value)}
+              placeholder="e.g. vegetarian, gluten-free, halal"
+            />
+          </div>
+
+          <div className="itinerary-planner__field">
+            <label htmlFor="travel-style">
+              Travel style / accessibility <span className="itinerary-planner__optional">(optional)</span>
+            </label>
+            <input
+              id="travel-style"
+              type="text"
+              value={travelStyle}
+              onChange={(e) => setTravelStyle(e.target.value)}
+              placeholder="e.g. traveling with kids, wheelchair-accessible routes"
+            />
           </div>
         </div>
 

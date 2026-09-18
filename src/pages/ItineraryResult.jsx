@@ -86,6 +86,22 @@ export function ItineraryResult() {
     }
   }
 
+  // Manual reordering (feature #4): swap two activities within a day.
+  // Client-side only — no AI call needed, this is just array reordering.
+  function handleReorderActivity(dayIndex, fromIndex, direction) {
+    const toIndex = fromIndex + direction;
+    setItinerary((prev) => {
+      const targetDay = prev.days[dayIndex];
+      if (toIndex < 0 || toIndex >= targetDay.activities.length) return prev;
+      const activities = [...targetDay.activities];
+      [activities[fromIndex], activities[toIndex]] = [activities[toIndex], activities[fromIndex]];
+      return {
+        ...prev,
+        days: prev.days.map((d, i) => (i === dayIndex ? { ...d, activities } : d)),
+      };
+    });
+  }
+
   if (!destination) {
     return (
       <div className="container itinerary-result">
@@ -112,7 +128,10 @@ export function ItineraryResult() {
   }
 
   const totalCost =
-    itinerary?.days?.reduce((sum, d) => sum + (typeof d.estimatedCost === "number" ? d.estimatedCost : 0), 0) ?? null;
+    itinerary?.days?.reduce((sum, d) => {
+      const dayTotal = typeof d.estimatedCost === "object" ? d.estimatedCost?.total : d.estimatedCost;
+      return sum + (typeof dayTotal === "number" ? dayTotal : 0);
+    }, 0) ?? null;
 
   return (
     <div className="container itinerary-result">
@@ -167,6 +186,7 @@ export function ItineraryResult() {
             onDayChange={setActiveDay}
             destinationName={destination.name}
             currencySymbol={itinerary.currencySymbol}
+            onReorderActivity={handleReorderActivity}
           />
           <AddPlaceCard
             onSubmit={handleAddPlace}

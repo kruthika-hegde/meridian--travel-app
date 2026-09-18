@@ -78,15 +78,23 @@ Keep answers to 2-4 short sentences unless the visitor asks for more detail. Do 
   return callGemini({ systemInstruction, contents });
 }
 
+// Shared JSON shape for a single day, used by both generation and the
+// add-a-place refinement call so the two stay in sync.
+// - "foodRecommendation" and "hiddenGem" are objects with a clean, short
+//   "name" (verifiable against Google Places — see src/api/places.js) plus a
+//   one-sentence "description", instead of a single free-text sentence.
+// - "estimatedCost" is a breakdown, not one number, for real budget
+//   transparency (what's actually driving the total) rather than a vague
+//   lump sum.
 const DAY_SCHEMA_BLOCK = `{
       "title": "short day title",
       "summary": "one sentence overview of the day",
-      "estimatedCost": 45,
+      "estimatedCost": { "activities": 20, "food": 15, "transport": 5, "total": 40 },
       "activities": [
         { "time": "Morning" | "Afternoon" | "Evening", "title": "activity name", "description": "one short sentence" }
       ],
-      "foodRecommendation": "one sentence naming a specific dish and where to get it",
-      "hiddenGem": "one sentence naming a lesser-known spot most visitors miss",
+      "foodRecommendation": { "name": "short place or dish name", "description": "one sentence" },
+      "hiddenGem": { "name": "short place name", "description": "one sentence" },
       "gettingAround": "one short sentence on how to get between that day's places"
     }`;
 
@@ -94,11 +102,22 @@ const DAY_SCHEMA_BLOCK = `{
  * Generate a structured day-by-day itinerary as JSON. If `mustVisit` places
  * are given, they're woven into the plan itself — each one grouped into
  * whichever day it makes the most geographic sense alongside, rather than
- * generated first and bolted on afterward.
+ * generated first and bolted on afterward. `dietary` and `travelStyle` are
+ * optional free-text personalization signals (e.g. "vegetarian", "traveling
+ * with a toddler, wheelchair-accessible routes preferred").
  *
  * Returns the full parsed object: { currencySymbol, bestTimeToVisit, localTip, days }
  */
-export async function generateItinerary({ destination, days, interests, pace, budget = "", mustVisit = [] }) {
+export async function generateItinerary({
+  destination,
+  days,
+  interests,
+  pace,
+  budget = "",
+  mustVisit = [],
+  dietary = "",
+  travelStyle = "",
+}) {
   const systemInstruction = `You are a travel planner. Respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this shape:
 {
   "currencySymbol": "$",
@@ -108,8 +127,9 @@ export async function generateItinerary({ destination, days, interests, pace, bu
     ${DAY_SCHEMA_BLOCK}
   ]
 }
-"currencySymbol" must match whatever currency is customary for ${destination.name} (e.g. "$", "€", "¥", "₹") — just the symbol, not a currency code. "estimatedCost" on each day is a realistic rough number (no symbol, no commas, no ranges) covering that day's activities, food, and local transport combined, in that currency.
-Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible. Keep every "description" and every other text field to one short sentence — brevity matters more than detail here.${
+"currencySymbol" must match whatever currency is customary for ${destination.name} (e.g. "$", "€", "¥", "₹") — just the symbol, not a currency code. Each day's "estimatedCost" fields are realistic rough numbers (no symbol, no commas, no ranges) in that currency; "total" must equal "activities" + "food" + "transport" for that day.
+"foodRecommendation.name" and "hiddenGem.name" must be an actual, real, findable place or dish name in ${destination.name} — not a vague description — since it will be checked against a live places database.
+Produce exactly the requested number of days. Ground activities in real, well-known places and neighbourhoods in the destination when possible. Keep every description field to one short sentence — brevity matters more than detail here.${
     mustVisit.length
       ? ` The traveler specifically wants these places included: ${mustVisit.join(
           ", "
@@ -117,14 +137,24 @@ Produce exactly the requested number of days. Ground activities in real, well-kn
       : ""
   }${
     budget
-      ? ` The traveler has a daily budget of roughly ${budget} (their local currency, unspecified) for food and activities. Favor suggestions that fit comfortably within that, and keep each day's "estimatedCost" realistically close to it — mixing in one splurge at most if it's genuinely worth it, but don't ignore the budget.`
+      ? ` The traveler has a daily budget of roughly ${budget} (their local currency, unspecified) for food and activities. Favor suggestions that fit comfortably within that, and keep each day's "estimatedCost.total" realistically close to it — mixing in one splurge at most if it's genuinely worth it, but don't ignore the budget.`
+      : ""
+  }${
+    dietary
+      ? ` Dietary needs: ${dietary}. Every food recommendation must genuinely fit this — don't suggest something and hope it can be modified.`
+      : ""
+  }${
+    travelStyle
+      ? ` Travel style / accessibility notes: ${travelStyle}. Choose activities and pacing that genuinely suit this, not just generic sightseeing.`
       : ""
   }`;
 
   const userPrompt = `Destination: ${destination.name}, ${destination.country}
 Trip length: ${days} day${days > 1 ? "s" : ""}
 Traveler interests: ${interests.length ? interests.join(", ") : "general sightseeing"}
-Pace: ${pace}${budget ? `\nDaily budget: ~${budget} (local currency)` : ""}
+Pace: ${pace}${budget ? `\nDaily budget: ~${budget} (local currency)` : ""}${
+    dietary ? `\nDietary needs: ${dietary}` : ""
+  }${travelStyle ? `\nTravel style / accessibility: ${travelStyle}` : ""}
 Known highlights to consider: ${destination.places.map((p) => p.name).join(", ")}${
     mustVisit.length ? `\nMust-visit places (include exactly once each, grouped geographically): ${mustVisit.join(", ")}` : ""
   }`;
@@ -164,7 +194,7 @@ Using your knowledge of ${destination.name}'s real geography, decide which SINGL
 
 Insert exactly one new activity for "${placeName}" into that day, choosing whichever time slot ("Morning", "Afternoon", or "Evening") keeps the day's route geographically sensible, and reorder that day's existing activities if needed so the sequence flows through nearby places without doubling back. Mark only the newly added activity with "isNew": true; do not add "isNew" to any other activity.
 
-The day's other fields ("estimatedCost", "foodRecommendation", "hiddenGem", "gettingAround") are provided below — keep them unchanged unless the new place meaningfully affects one (e.g. bump "estimatedCost" up a little if the new place has a notable entry fee), in which case update it sensibly.
+The day's other fields ("estimatedCost", "foodRecommendation", "hiddenGem", "gettingAround") are provided below — keep them unchanged unless the new place meaningfully affects one (e.g. bump "estimatedCost.activities" and "estimatedCost.total" up a little if the new place has a notable entry fee), in which case update them sensibly and keep "estimatedCost.total" equal to the sum of the other three.
 
 Respond with ONLY valid JSON, no markdown fences, no commentary, matching exactly this shape:
 {
