@@ -9,18 +9,6 @@ beyond the brief as a fuller portfolio piece.
 **Live app:** _add your deployed URL here_
 **Repository:** _add your GitHub repo URL here_
 
-## Screenshots
-
-_Add 3–4 screenshots here after deploying — the landing hero, the destination
-explorer, a destination detail page, and the itinerary result page in use. Drop
-the images in a `/screenshots` folder and reference them, e.g.:_
-
-```md
-![Landing page](./screenshots/landing.png)
-![Explore page](./screenshots/explore.png)
-![Destination detail](./screenshots/destination.png)
-![Itinerary result](./screenshots/itinerary.png)
-```
 
 ## Features
 
