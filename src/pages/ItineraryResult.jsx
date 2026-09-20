@@ -102,6 +102,18 @@ export function ItineraryResult() {
     });
   }
 
+  // Removing an activity is a plain array filter — since activities render
+  // as a simple ordered list rather than fixed clock-time slots, there's no
+  // gap to "heal": the remaining items just close up naturally.
+  function handleDeleteActivity(dayIndex, activityIndex) {
+    setItinerary((prev) => ({
+      ...prev,
+      days: prev.days.map((d, i) =>
+        i === dayIndex ? { ...d, activities: d.activities.filter((_, j) => j !== activityIndex) } : d
+      ),
+    }));
+  }
+
   if (!destination) {
     return (
       <div className="container itinerary-result">
@@ -187,6 +199,7 @@ export function ItineraryResult() {
             destinationName={destination.name}
             currencySymbol={itinerary.currencySymbol}
             onReorderActivity={handleReorderActivity}
+            onDeleteActivity={handleDeleteActivity}
           />
           <AddPlaceCard
             onSubmit={handleAddPlace}

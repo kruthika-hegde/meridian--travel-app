@@ -4,6 +4,15 @@ import "./ItineraryPlanner.css";
 
 const INTEREST_OPTIONS = ["Food", "History", "Nature", "Nightlife", "Art & museums", "Shopping"];
 const PACE_OPTIONS = ["Relaxed", "Balanced", "Packed"];
+const DIETARY_OPTIONS = ["Vegetarian", "Vegan", "Halal", "Kosher", "Gluten-free", "Dairy-free"];
+const TRAVEL_STYLE_OPTIONS = [
+  "Kid-friendly",
+  "Wheelchair-accessible",
+  "Solo traveler",
+  "Group of friends",
+  "Senior-friendly",
+  "Low-mobility pace",
+];
 
 export function ItineraryPlanner({ destination }) {
   const navigate = useNavigate();
@@ -11,8 +20,8 @@ export function ItineraryPlanner({ destination }) {
   const [interests, setInterests] = useState([]);
   const [pace, setPace] = useState("Balanced");
   const [budget, setBudget] = useState("");
-  const [dietary, setDietary] = useState("");
-  const [travelStyle, setTravelStyle] = useState("");
+  const [dietary, setDietary] = useState([]);
+  const [travelStyle, setTravelStyle] = useState([]);
 
   // Places the traveler wants included from the start — woven into
   // generation itself rather than bolted on after.
@@ -23,6 +32,10 @@ export function ItineraryPlanner({ destination }) {
     setInterests((prev) =>
       prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
     );
+  }
+
+  function toggleTag(value, setter) {
+    setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   }
 
   function addMustVisitPlace() {
@@ -43,9 +56,19 @@ export function ItineraryPlanner({ destination }) {
     e.preventDefault();
     // Generation itself happens on the itinerary result page, triggered
     // automatically on load there — this form just collects inputs and hands
-    // them off via router state.
+    // them off via router state. Tag arrays are joined into plain strings
+    // here so the Gemini prompt layer doesn't need to know about the chip UI.
     navigate(`/destinations/${destination.id}/itinerary`, {
-      state: { destination, days, interests, pace, budget: budget.trim(), mustVisit, dietary: dietary.trim(), travelStyle: travelStyle.trim() },
+      state: {
+        destination,
+        days,
+        interests,
+        pace,
+        budget: budget.trim(),
+        mustVisit,
+        dietary: dietary.join(", "),
+        travelStyle: travelStyle.join(", "),
+      },
     });
   }
 
@@ -121,31 +144,43 @@ export function ItineraryPlanner({ destination }) {
             </select>
           </div>
 
-          <div className="itinerary-planner__field">
-            <label htmlFor="dietary">
+          <fieldset className="itinerary-planner__field">
+            <legend>
               Dietary needs <span className="itinerary-planner__optional">(optional)</span>
-            </label>
-            <input
-              id="dietary"
-              type="text"
-              value={dietary}
-              onChange={(e) => setDietary(e.target.value)}
-              placeholder="e.g. vegetarian, gluten-free, halal"
-            />
-          </div>
+            </legend>
+            <div className="itinerary-planner__chips">
+              {DIETARY_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={dietary.includes(option) ? "chip chip--active" : "chip"}
+                  aria-pressed={dietary.includes(option)}
+                  onClick={() => toggleTag(option, setDietary)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
-          <div className="itinerary-planner__field">
-            <label htmlFor="travel-style">
+          <fieldset className="itinerary-planner__field">
+            <legend>
               Travel style / accessibility <span className="itinerary-planner__optional">(optional)</span>
-            </label>
-            <input
-              id="travel-style"
-              type="text"
-              value={travelStyle}
-              onChange={(e) => setTravelStyle(e.target.value)}
-              placeholder="e.g. traveling with kids, wheelchair-accessible routes"
-            />
-          </div>
+            </legend>
+            <div className="itinerary-planner__chips">
+              {TRAVEL_STYLE_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={travelStyle.includes(option) ? "chip chip--active" : "chip"}
+                  aria-pressed={travelStyle.includes(option)}
+                  onClick={() => toggleTag(option, setTravelStyle)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </div>
 
         <div className="itinerary-planner__form">

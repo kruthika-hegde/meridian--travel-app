@@ -228,6 +228,37 @@
   cursor: default;
 }
 
+.itinerary-timeline__actions {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.itinerary-timeline__delete {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line);
+  background: white;
+  cursor: pointer;
+  line-height: 1;
+  font-size: var(--size-md);
+  color: color-mix(in srgb, var(--color-charcoal) 55%, transparent);
+}
+
+.itinerary-timeline__delete:hover {
+  border-color: #b3261e;
+  color: #b3261e;
+}
+
+.itinerary-timeline__empty {
+  font-size: var(--size-sm);
+  color: color-mix(in srgb, var(--color-charcoal) 55%, transparent);
+  font-style: italic;
+  padding: var(--space-3) 0;
+}
+
 .verify-badge {
   display: inline-block;
   font-size: 10px;

@@ -30,6 +30,7 @@ export function ItineraryTimeline({
   destinationName,
   currencySymbol = "$",
   onReorderActivity,
+  onDeleteActivity,
 }) {
   const day = days[activeDay];
 
@@ -141,6 +142,11 @@ export function ItineraryTimeline({
       )}
 
       <div className="itinerary-timeline__sections">
+        {day.activities.length === 0 && (
+          <p className="itinerary-timeline__empty">
+            No activities left for this day — add one with the card below.
+          </p>
+        )}
         {day.activities.map((activity, j) => (
           <div
             key={j}
@@ -161,26 +167,38 @@ export function ItineraryTimeline({
                 </p>
                 <p className="itinerary-timeline__section-desc">{activity.description}</p>
               </div>
-              {onReorderActivity && (
-                <div className="itinerary-timeline__reorder">
+              <div className="itinerary-timeline__actions">
+                {onReorderActivity && (
+                  <div className="itinerary-timeline__reorder">
+                    <button
+                      type="button"
+                      onClick={() => onReorderActivity(activeDay, j, -1)}
+                      disabled={j === 0}
+                      aria-label={`Move ${activity.title} earlier`}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReorderActivity(activeDay, j, 1)}
+                      disabled={j === day.activities.length - 1}
+                      aria-label={`Move ${activity.title} later`}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                )}
+                {onDeleteActivity && (
                   <button
                     type="button"
-                    onClick={() => onReorderActivity(activeDay, j, -1)}
-                    disabled={j === 0}
-                    aria-label={`Move ${activity.title} earlier`}
+                    className="itinerary-timeline__delete"
+                    onClick={() => onDeleteActivity(activeDay, j)}
+                    aria-label={`Remove ${activity.title}`}
                   >
-                    ↑
+                    ×
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onReorderActivity(activeDay, j, 1)}
-                    disabled={j === day.activities.length - 1}
-                    aria-label={`Move ${activity.title} later`}
-                  >
-                    ↓
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         ))}
