@@ -6,7 +6,7 @@ const BASE_URL = "/api/verify-place";
 const cache = new Map();
 
 /**
- * Checks a place against live Google Places data: whether it's found at all,
+ * Checks a place against live Foursquare Places data: whether it's found at all,
  * its current operating status, rating, and coordinates. Returns
  * { found: false } on any failure (missing key, network error, not found) —
  * callers should treat that as "can't verify," not as an error to surface.

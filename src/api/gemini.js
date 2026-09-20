@@ -81,7 +81,7 @@ Keep answers to 2-4 short sentences unless the visitor asks for more detail. Do 
 // Shared JSON shape for a single day, used by both generation and the
 // add-a-place refinement call so the two stay in sync.
 // - "foodRecommendation" and "hiddenGem" are objects with a clean, short
-//   "name" (verifiable against Google Places — see src/api/places.js) plus a
+//   "name" (verifiable against Foursquare Places — see src/api/places.js) plus a
 //   one-sentence "description", instead of a single free-text sentence.
 // - "estimatedCost" is a breakdown, not one number, for real budget
 //   transparency (what's actually driving the total) rather than a vague

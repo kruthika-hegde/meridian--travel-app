@@ -34,7 +34,7 @@ export function ItineraryTimeline({
   const day = days[activeDay];
 
   // Feature #1 (accuracy): verify the hidden gem, food rec, and each
-  // activity against live Google Places data. Feature #2 (geographic
+  // activity against live Foursquare Places data. Feature #2 (geographic
   // logic): reuse those same results' coordinates to compute a real
   // distance-based route check, instead of just trusting the model's claim
   // that a day's stops are close together.
