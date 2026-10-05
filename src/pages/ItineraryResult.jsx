@@ -4,6 +4,7 @@ import { getDestinationById } from "../data/destinations";
 import { generateItinerary, addPlaceToItinerary, GeminiApiError } from "../api/gemini";
 import { ItineraryTimeline } from "../components/itinerary/ItineraryTimeline";
 import { AddPlaceCard } from "../components/itinerary/AddPlaceCard";
+import { reorderActivity, removeActivity, calculateTotalCost } from "../utils/itinerary";
 import { ChatWidget } from "../components/chat/ChatWidget";
 import { LoadingState, ErrorState } from "../components/common/StatusStates";
 import "./ItineraryResult.css";
@@ -86,32 +87,14 @@ export function ItineraryResult() {
     }
   }
 
-  // Manual reordering (feature #4): swap two activities within a day.
-  // Client-side only — no AI call needed, this is just array reordering.
+  // Manual reordering and removal are client-side only — no AI call needed.
+  // The logic lives in utils/itinerary.js so it can be unit tested.
   function handleReorderActivity(dayIndex, fromIndex, direction) {
-    const toIndex = fromIndex + direction;
-    setItinerary((prev) => {
-      const targetDay = prev.days[dayIndex];
-      if (toIndex < 0 || toIndex >= targetDay.activities.length) return prev;
-      const activities = [...targetDay.activities];
-      [activities[fromIndex], activities[toIndex]] = [activities[toIndex], activities[fromIndex]];
-      return {
-        ...prev,
-        days: prev.days.map((d, i) => (i === dayIndex ? { ...d, activities } : d)),
-      };
-    });
+    setItinerary((prev) => reorderActivity(prev, dayIndex, fromIndex, direction));
   }
 
-  // Removing an activity is a plain array filter — since activities render
-  // as a simple ordered list rather than fixed clock-time slots, there's no
-  // gap to "heal": the remaining items just close up naturally.
   function handleDeleteActivity(dayIndex, activityIndex) {
-    setItinerary((prev) => ({
-      ...prev,
-      days: prev.days.map((d, i) =>
-        i === dayIndex ? { ...d, activities: d.activities.filter((_, j) => j !== activityIndex) } : d
-      ),
-    }));
+    setItinerary((prev) => removeActivity(prev, dayIndex, activityIndex));
   }
 
   if (!destination) {
@@ -139,11 +122,7 @@ export function ItineraryResult() {
     );
   }
 
-  const totalCost =
-    itinerary?.days?.reduce((sum, d) => {
-      const dayTotal = typeof d.estimatedCost === "object" ? d.estimatedCost?.total : d.estimatedCost;
-      return sum + (typeof dayTotal === "number" ? dayTotal : 0);
-    }, 0) ?? null;
+  const totalCost = itinerary ? calculateTotalCost(itinerary.days) : null;
 
   return (
     <div className="container itinerary-result">

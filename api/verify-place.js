@@ -1,4 +1,5 @@
 import { isAllowed, clientIp } from "./_rateLimit.js";
+import { validateSearchTerm } from "./_validate.js";
 
 const API_KEY = process.env.FOURSQUARE_API_KEY;
 const SEARCH_URL = "https://api.foursquare.com/v3/places/search";
@@ -35,11 +36,14 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { query, context = "" } = req.query;
-  if (!query) {
-    res.status(400).json({ error: "query is required." });
+  const term = validateSearchTerm(req.query.query, { min: 1, max: 120 });
+  if (!term.ok) {
+    res.status(400).json({ error: term.error });
     return;
   }
+  const query = term.value;
+  const contextCheck = validateSearchTerm(req.query.context ?? "", { min: 0, max: 80 });
+  const context = contextCheck.ok ? contextCheck.value : "";
 
   try {
     const params = new URLSearchParams({

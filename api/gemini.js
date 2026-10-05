@@ -1,4 +1,6 @@
 import { isAllowed, clientIp } from "./_rateLimit.js";
+import { validateChatRequest, validateItineraryRequest, validateAddPlaceRequest } from "./_validate.js";
+import { buildChatRequest, buildItineraryRequest, buildAddPlaceRequest } from "./_prompts.js";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const urlFor = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
@@ -25,9 +27,11 @@ async function attempt(model, { systemInstruction, contents, responseMimeType },
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const upstream = await fetch(`${urlFor(model)}?key=${API_KEY}`, {
+    // The key goes in a header, not the URL, so it can't leak into logs,
+    // proxies or error messages that record request URLs.
+    const upstream = await fetch(urlFor(model), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": API_KEY },
       signal: controller.signal,
       body: JSON.stringify({
         systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
@@ -109,14 +113,32 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { systemInstruction, contents, responseMimeType } = req.body ?? {};
-  if (!Array.isArray(contents) || contents.length === 0) {
-    res.status(400).json({ error: "contents is required." });
+  // The client sends only a task name plus structured parameters. Each task
+  // is validated against a strict schema, and the system prompt is built here
+  // on the server — callers can never supply their own prompt.
+  const body = req.body ?? {};
+  const TASKS = {
+    chat: [validateChatRequest, buildChatRequest],
+    itinerary: [validateItineraryRequest, buildItineraryRequest],
+    addPlace: [validateAddPlaceRequest, buildAddPlaceRequest],
+  };
+
+  const task = typeof body.task === "string" && Object.hasOwn(TASKS, body.task) ? TASKS[body.task] : null;
+  if (!task) {
+    res.status(400).json({ error: "Unknown task." });
+    return;
+  }
+
+  const [validate, buildPayload] = task;
+  const checked = validate(body);
+  if (!checked.ok) {
+    res.status(400).json({ error: checked.error });
     return;
   }
 
   try {
-    const result = await callGemini({ systemInstruction, contents, responseMimeType });
+    const result = await callGemini(buildPayload(checked.value));
+    res.setHeader("Cache-Control", "no-store");
     res.status(200).json(result);
   } catch (err) {
     res.status(503).json({ error: err.message || "The AI assistant couldn't complete that request." });

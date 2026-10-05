@@ -1,4 +1,5 @@
 import { isAllowed, clientIp } from "./_rateLimit.js";
+import { validateSearchTerm, boundedInt } from "./_validate.js";
 
 const API_KEY = process.env.PEXELS_API_KEY;
 const BASE_URL = "https://api.pexels.com/v1";
@@ -19,11 +20,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { query, perPage = "1" } = req.query;
-  if (!query) {
-    res.status(400).json({ error: "query is required." });
+  const term = validateSearchTerm(req.query.query, { min: 1, max: 100 });
+  if (!term.ok) {
+    res.status(400).json({ error: term.error });
     return;
   }
+  const query = term.value;
+  const perPage = boundedInt(req.query.perPage, { fallback: 1, min: 1, max: 10 });
 
   try {
     const url = `${BASE_URL}/search?query=${encodeURIComponent(

@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  INTEREST_OPTIONS,
+  PACE_OPTIONS,
+  DIETARY_OPTIONS,
+  TRAVEL_STYLE_OPTIONS,
+  LIMITS,
+} from "../../data/planOptions";
 import "./ItineraryPlanner.css";
-
-const INTEREST_OPTIONS = ["Food", "History", "Nature", "Nightlife", "Art & museums", "Shopping"];
-const PACE_OPTIONS = ["Relaxed", "Balanced", "Packed"];
-const DIETARY_OPTIONS = ["Vegetarian", "Vegan", "Halal", "Kosher", "Gluten-free", "Dairy-free"];
-const TRAVEL_STYLE_OPTIONS = [
-  "Kid-friendly",
-  "Wheelchair-accessible",
-  "Solo traveler",
-  "Group of friends",
-  "Senior-friendly",
-  "Low-mobility pace",
-];
 
 export function ItineraryPlanner({ destination }) {
   const navigate = useNavigate();
@@ -40,7 +35,7 @@ export function ItineraryPlanner({ destination }) {
 
   function addMustVisitPlace() {
     const trimmed = mustVisitInput.trim();
-    if (!trimmed) return;
+    if (!trimmed || mustVisit.length >= LIMITS.maxMustVisit) return;
     const alreadyAdded = mustVisit.some((p) => p.toLowerCase() === trimmed.toLowerCase());
     if (!alreadyAdded) {
       setMustVisit((prev) => [...prev, trimmed]);
@@ -56,8 +51,8 @@ export function ItineraryPlanner({ destination }) {
     e.preventDefault();
     // Generation itself happens on the itinerary result page, triggered
     // automatically on load there — this form just collects inputs and hands
-    // them off via router state. Tag arrays are joined into plain strings
-    // here so the Gemini prompt layer doesn't need to know about the chip UI.
+    // them off via router state. Chip selections are sent as arrays so the
+    // server can validate them against the allowed options.
     navigate(`/destinations/${destination.id}/itinerary`, {
       state: {
         destination,
@@ -66,8 +61,8 @@ export function ItineraryPlanner({ destination }) {
         pace,
         budget: budget.trim(),
         mustVisit,
-        dietary: dietary.join(", "),
-        travelStyle: travelStyle.join(", "),
+        dietary,
+        travelStyle,
       },
     });
   }
@@ -81,7 +76,7 @@ export function ItineraryPlanner({ destination }) {
             <div className="itinerary-planner__stepper">
               <button
                 type="button"
-                onClick={() => setDays((d) => Math.max(1, d - 1))}
+                onClick={() => setDays((d) => Math.max(LIMITS.minDays, d - 1))}
                 aria-label="Fewer days"
               >
                 −
@@ -89,13 +84,19 @@ export function ItineraryPlanner({ destination }) {
               <span id="days" aria-live="polite">
                 {days} day{days > 1 ? "s" : ""}
               </span>
-              <button type="button" onClick={() => setDays((d) => d + 1)} aria-label="More days">
+              <button
+                type="button"
+                onClick={() => setDays((d) => Math.min(LIMITS.maxDays, d + 1))}
+                disabled={days >= LIMITS.maxDays}
+                aria-label="More days"
+              >
                 +
               </button>
             </div>
-            {days > 14 && (
+            {days > 10 && (
               <p className="itinerary-planner__hint">
-                Longer trips take the AI more time to generate and may need a retry — 5–10 days tends to be fastest.
+                Longer trips take the AI more time to generate and may need a retry — 5–10 days tends to be fastest
+                (maximum {LIMITS.maxDays} days).
               </p>
             )}
           </div>
@@ -201,8 +202,9 @@ export function ItineraryPlanner({ destination }) {
                   }
                 }}
                 placeholder="e.g. Amber Fort"
+                maxLength={LIMITS.maxPlaceNameLength}
               />
-              <button type="button" onClick={addMustVisitPlace} disabled={!mustVisitInput.trim()}>
+              <button type="button" onClick={addMustVisitPlace} disabled={!mustVisitInput.trim() || mustVisit.length >= LIMITS.maxMustVisit}>
                 Add
               </button>
             </div>

@@ -1,4 +1,5 @@
 import { isAllowed, clientIp } from "./_rateLimit.js";
+import { validateCoordinates, validateUnits } from "./_validate.js";
 
 const API_KEY = process.env.OPENWEATHER_API_KEY;
 const BASE_URL = "https://api.openweathermap.org/data/2.5";
@@ -19,11 +20,18 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { lat, lon, units = "metric" } = req.query;
-  if (!lat || !lon) {
-    res.status(400).json({ error: "lat and lon are required." });
+  const coords = validateCoordinates(req.query.lat, req.query.lon);
+  if (!coords.ok) {
+    res.status(400).json({ error: coords.error });
     return;
   }
+  const unitCheck = validateUnits(req.query.units);
+  if (!unitCheck.ok) {
+    res.status(400).json({ error: unitCheck.error });
+    return;
+  }
+  const { lat, lon } = coords.value;
+  const units = unitCheck.value;
 
   try {
     const url = `${BASE_URL}/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(

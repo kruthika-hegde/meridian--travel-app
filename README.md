@@ -6,8 +6,9 @@ suggestions against live places data instead of just guessing. Originally built
 for the Designesthetics front-end developer assignment, then extended well
 beyond the brief as a fuller portfolio piece.
 
-**Live app:** _add your deployed URL here_
-**Repository:** _add your GitHub repo URL here_
+**Live app:** https://meridian-travel-app-seven.vercel.app
+**Repository:** https://github.com/kruthika-hegde/meridian--travel-app
+**Design doc:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 
 ## Features
@@ -40,7 +41,7 @@ beyond the brief as a fuller portfolio piece.
   attempts to get it to repeat its own instructions.
 
 ### Itinerary planning
-The planner (on each destination page) collects trip length (no upper cap),
+The planner (on each destination page) collects trip length (1–14 days),
 interests, pace, an optional daily budget, optional dietary needs and
 travel-style/accessibility tags (toggle chips, not free text — feeds real
 personalization into the prompt instead of generic "top 10" suggestions), and
@@ -121,6 +122,14 @@ Meridian's own `/api/*` routes.
 
 The Gemini function handles retries, model fallback, and a request timeout
 server-side, all budgeted to fit inside Vercel's serverless execution limit.
+Every function also validates its input on the server (`api/_validate.js`):
+coordinates must be real numbers in range, search terms are length-capped,
+and the AI endpoint accepts only a task name plus structured parameters that
+are checked against the same option lists the form uses
+(`src/data/planOptions.js`). **AI system prompts are built on the server**
+(`api/_prompts.js`), so a caller can never supply their own prompt and use
+`/api/gemini` as a free general-purpose Gemini proxy. The Gemini key is sent in
+a request header rather than the URL so it can't leak into logs.
 Every function applies a basic per-IP rate limit (see `api/_rateLimit.js` for
 its limitations at scale — it's in-memory, so it's a reasonable deterrent,
 not a strict guarantee, and would need a shared store like Vercel KV or
@@ -228,13 +237,16 @@ api/                       serverless functions — the only place real API keys
   weather.js, geocode.js   OpenWeather proxies
   images.js                Pexels proxy
   verify-place.js          Foursquare place verification proxy
+  _validate.js             server-side input validation for every endpoint
+  _prompts.js              AI system prompts (server-side only)
   _rateLimit.js            shared per-IP rate limiter
 src/
   api/                     client-side fetch wrappers that call this app's own /api routes
   hooks/                   useGeolocation, useWeather, useImage
   context/                 LocationContext (shared "where the visitor is")
   data/                    seed destination dataset (no image URLs — only search queries)
-  utils/                   geo.js — haversine distance calculation
+                           + planOptions.js, shared by the form and the API validators
+  utils/                   geo.js (haversine distance), itinerary.js (reorder, remove, cost, route check)
   components/
     layout/                Header, Footer, LocationControl
     hero/                  landing hero with background video
@@ -244,7 +256,26 @@ src/
     itinerary/             planner form, day timeline, add-a-place card
     common/                LoadingState / EmptyState / ErrorState / Skeleton / ErrorBoundary
   pages/                   Home, Explore, DestinationDetail, ItineraryResult, NotFound
+tests/                     Vitest + React Testing Library suite
+docs/ARCHITECTURE.md       technical design document
+.github/workflows/ci.yml   lint + test + build on every push and pull request
 ```
+
+## Testing
+
+```
+npm test            # run the whole suite once
+npm run test:watch  # re-run on change
+```
+
+Tests use [Vitest](https://vitest.dev) and React Testing Library. They cover
+the server-side validators (including prompt-injection and oversized-payload
+cases), the `/api/gemini` handler end to end with Gemini stubbed (it rejects
+caller-supplied prompts, keeps the key out of the URL, and rate-limits), the
+prompt builders, haversine distance, the itinerary reorder/remove/cost/route
+logic, and the accessibility behaviour of the add-a-place and status
+components. GitHub Actions runs lint, tests and the production build on every
+push and pull request.
 
 ## Design notes
 
@@ -273,6 +304,8 @@ the header's location pin use the same route-line/marker motif to tie the
   details are passed via router state, not a URL or storage, since an
   itinerary that never gets revisited didn't seem worth persisting — this is
   the first thing to add if that assumption turns out wrong).
-- No automated tests yet (unit or e2e) — a natural next addition (Vitest +
-  React Testing Library for components, Playwright for the itinerary/chat
-  flows) given more time.
+- Test coverage is unit and component level only. There are no end-to-end
+  browser tests yet — Playwright for the itinerary and chat flows is the next
+  addition.
+- Trip length is capped at 14 days because the single-shot AI response can't
+  reliably finish longer plans inside Vercel's 10-second function limit.

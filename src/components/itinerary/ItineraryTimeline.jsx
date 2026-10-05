@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { verifyPlace } from "../../api/places";
-import { distanceKm } from "../../utils/geo";
+import { analyzeRoute } from "../../utils/itinerary";
 import "./ItineraryTimeline.css";
 
 const TIME_ICON = {
@@ -67,19 +67,9 @@ export function ItineraryTimeline({
     .map((_, i) => verifications[`act-${activeDay}-${i}`])
     .filter((r) => r?.found && r.lat != null && r.lng != null);
 
-  let totalDistance = null;
-  let hasOutlierLeg = false;
-  if (activityCoords.length >= 2) {
-    const legs = [];
-    for (let i = 1; i < activityCoords.length; i++) {
-      legs.push(
-        distanceKm(activityCoords[i - 1].lat, activityCoords[i - 1].lng, activityCoords[i].lat, activityCoords[i].lng)
-      );
-    }
-    totalDistance = legs.reduce((a, b) => a + b, 0);
-    const avg = totalDistance / legs.length;
-    hasOutlierLeg = legs.some((leg) => leg > avg * 2 && leg > 5);
-  }
+  const route = analyzeRoute(activityCoords);
+  const totalDistance = route ? route.totalKm : null;
+  const hasOutlierLeg = route ? route.hasOutlierLeg : false;
 
   const cost = day.estimatedCost;
   const hasCostBreakdown = cost && typeof cost === "object";

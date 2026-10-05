@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,6 +11,11 @@ export default defineConfig({
   },
   build: {
     sourcemap: false,
+  },
+  test: {
+    environment: 'node', // component tests opt in to jsdom with a per-file comment
+    include: ['tests/**/*.test.{js,jsx}'],
+    setupFiles: ['./tests/setup.js'],
   },
   server: {
     // Local workaround: `vercel dev`'s reverse proxy breaks Vite's own HTML

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { askDestinationQuestion, GeminiApiError } from "../../api/gemini";
+import { LIMITS } from "../../data/planOptions";
 import "./ChatWidget.css";
 
 const SUGGESTIONS = [
@@ -134,6 +135,7 @@ export function ChatWidget({ destination }) {
               id="chat-input"
               type="text"
               placeholder="Ask a question…"
+              maxLength={LIMITS.maxQuestionLength}
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />

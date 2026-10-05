@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LIMITS } from "../../data/planOptions";
 import "./AddPlaceCard.css";
 
 export function AddPlaceCard({ onSubmit, status, note, errorMessage }) {
@@ -26,6 +27,7 @@ export function AddPlaceCard({ onSubmit, status, note, errorMessage }) {
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="e.g. Panna Meena ka Kund"
+                    maxLength={LIMITS.maxPlaceNameLength}
                     aria-label="Place to add to your itinerary"
                     disabled={status === "loading"}
                 />

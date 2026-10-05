@@ -1,4 +1,5 @@
 import { isAllowed, clientIp } from "./_rateLimit.js";
+import { validateSearchTerm, boundedInt } from "./_validate.js";
 
 const API_KEY = process.env.OPENWEATHER_API_KEY;
 const GEO_URL = "https://api.openweathermap.org/geo/1.0";
@@ -19,11 +20,15 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { q, limit = "5" } = req.query;
-  if (!q || q.trim().length < 2) {
+  // Too-short or malformed search terms just return no results (the UI
+  // searches as the user types), rather than being treated as errors.
+  const term = validateSearchTerm(req.query.q, { min: 2, max: 100 });
+  if (!term.ok) {
     res.status(200).json([]);
     return;
   }
+  const q = term.value;
+  const limit = boundedInt(req.query.limit, { fallback: 5, min: 1, max: 10 });
 
   try {
     const url = `${GEO_URL}/direct?q=${encodeURIComponent(q)}&limit=${encodeURIComponent(
